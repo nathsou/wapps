@@ -65,6 +65,7 @@ impl Graphics {
             sdl_context,
             canvas,
             // SAFETY: texture_creator lifetime is tied to canvas which we own
+            #[allow(clippy::useless_transmute)]
             texture_creator: unsafe { std::mem::transmute(texture_creator) },
             texture: None,
             event_pump,
@@ -103,7 +104,8 @@ impl Graphics {
                 .context("Failed to create streaming texture")?;
 
             // SAFETY: texture lifetime is managed manually, texture_creator outlives texture
-            self.texture = Some(unsafe { std::mem::transmute(texture) });
+            self.texture =
+                Some(unsafe { std::mem::transmute::<Texture<'_>, Texture<'static>>(texture) });
         }
 
         // Update texture with pixel data

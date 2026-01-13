@@ -57,16 +57,32 @@ fn main() -> Result<()> {
 
 fn run_app(wapp_path: &PathBuf) -> Result<()> {
     // Load and validate the WAPP file
-    let wasm_bytes = loader::load_wapp(wapp_path)
+    let (wasm_bytes, metadata) = loader::load_wapp(wapp_path)
         .with_context(|| format!("Failed to load WAPP file: {:?}", wapp_path))?;
 
     info!(
-        "WAPP loaded successfully ({} bytes of WASM)",
-        wasm_bytes.len()
+        "WAPP loaded successfully ({} bytes of WASM). Name: {:?}",
+        wasm_bytes.len(),
+        metadata.name
     );
 
+    if !metadata.description.is_empty() {
+        info!("Description: {}", metadata.description);
+    }
+
+    // Determine window title
+    let title = if !metadata.name.is_empty() {
+        metadata.name
+    } else {
+        wapp_path
+            .file_stem()
+            .and_then(|s| s.to_str())
+            .unwrap_or("WAPPS")
+            .to_string()
+    };
+
     // Initialize graphics
-    let mut graphics = Graphics::new("WAPPS", 800, 600).context("Failed to initialize graphics")?;
+    let mut graphics = Graphics::new(&title, 800, 600).context("Failed to initialize graphics")?;
 
     // Initialize WASM runtime with host interface
     let host_interface = HostInterface::new();
