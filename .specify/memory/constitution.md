@@ -1,50 +1,50 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+<!--
+Sync Impact Report:
+- Version Change: 1.0.0 -> 2.0.0 (Forbidden Testing & Strict Dependency Minimization)
+- Modified Principles:
+    - Code Quality: Added strict ban on automated testing.
+    - Simplicity: Added strict minimal dependency requirement.
+- Added Sections: N/A
+- Removed Sections: N/A
+- Templates Requiring Updates:
+    - .specify/templates/plan-template.md (Updated Testing field)
+    - .specify/templates/tasks-template.md (Updated Tests guidance)
+    - .specify/templates/spec-template.md (Renamed Testing -> Verification)
+- TODOs: None
+-->
+
+# wapps Constitution
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. Code Quality
+Code MUST be robust and maintainable. Automated testing (unit, integration, e2e) is strictly FORBIDDEN. Quality is guaranteed through strict adherence to type safety, compiler guarantees, and manual verification. Technical debt MUST be addressed immediately when encountered ("Boy Scout Rule"). Errors MUST be handled explicitly; panic/crashing is not acceptable for user errors.
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+### II. Performance
+Systems MUST be optimized for low latency and efficient resource usage. Critical paths SHOULD be benchmarked. Premature optimization is discouraged, but architectural decisions MUST consider performance implications from the start.
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+### III. Readability
+Code is read more often than it is written. Variable and function names MUST be descriptive and unambiguous. Consistency in style and formatting is MANDATORY. Comments should explain the "why", not the "how". Complex logic MUST be documented.
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+### IV. Simplicity
+Adhere to KISS (Keep It Simple, Stupid) and YAGNI (You Aren't Gonna Need It). Minimal dependencies are MANDATORY; prefer the standard library over external crates unless absolutely necessary. Essential complexity is allowed; accidental complexity MUST be eliminated. Simpler solutions are preferred over clever ones.
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+## Technical Implementation
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+### Stack & Standards
+- **Language**: Rust (implied by workspace context). Idiomatic Rust is required.
+- **Formatting**: `cargo fmt` MUST be used.
+- **Linting**: `cargo clippy` MUST pass without warnings.
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+## Development Workflow
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
-
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+### Review & Quality
+- All changes MUST be reviewed via Pull Request.
+- CI/CD pipelines MUST pass (fmt, clippy) before merge (NO tests).
+- Commits SHOULD be atomic and semantic (Conventional Commits).
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+This constitution governs the development of the wapps project. Amendments require a Pull Request with updated versioning and rationale. All contributors must adhere to these principles.
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+**Version**: 2.0.0 | **Ratified**: 2026-01-13 | **Last Amended**: 2026-01-13

@@ -1,0 +1,46 @@
+# Rust build artifacts
+target/
+debug/
+release/
+*.rs.bk
+*.rlib
+*.rmeta
+
+# Cargo lock for binaries (keep for libraries)
+# Cargo.lock - keeping this tracked for reproducible builds
+
+# IDE and editors
+.idea/
+*.iml
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment and secrets
+.env
+.env.*
+*.env.local
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+
+# WASM build artifacts (local)
+*.wasm
+
+# Packaged apps (can be rebuilt)
+*.wapp
+
+# Coverage
+coverage/
+*.profraw
+*.profdata

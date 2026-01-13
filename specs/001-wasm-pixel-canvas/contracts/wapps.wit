@@ -1,0 +1,50 @@
+// WAPPS Interface Definition (WIT-style syntax for documentation)
+// Namespace: "wapps"
+
+// --- Host Imports ---
+// Functions the Guest imports from the Host module "wapps"
+
+/// Updates the host display with the provided pixel data.
+/// 
+/// # Parameters
+/// - `width`: Width of the frame in pixels.
+/// - `height`: Height of the frame in pixels.
+/// - `pixels_ptr`: Pointer/Offset into WASM Linear Memory where the pixel buffer starts.
+///   The buffer length must be `width * height * 4` bytes.
+///   Format: R-G-B-A byte order (packed 32-bit).
+func update_frame(width: i32, height: i32, pixels_ptr: i32)
+
+// --- Guest Exports ---
+// Functions the Guest MUST/MAY export to the Host.
+
+/// Main Loop Callback.
+/// Called by the Host approximately 60 times per second.
+/// 
+/// # Parameters
+/// - `dt`: Delta time in seconds since the last frame (e.g., 0.0166).
+func update(dt: f64)
+
+/// Window Resize Callback (Optional).
+/// Called when the Host window is resized by the user.
+///
+/// # Parameters
+/// - `width`: New client area width.
+/// - `height`: New client area height.
+func on_resize(width: i32, height: i32)
+
+/// Pointer Move Callback (Optional).
+func on_pointer_move(x: i32, y: i32)
+
+/// Pointer Down Callback (Optional).
+/// Buttons: 1=Left, 2=Middle, 3=Right
+func on_pointer_down(x: i32, y: i32, button: i32)
+
+/// Pointer Up Callback (Optional).
+func on_pointer_up(x: i32, y: i32, button: i32)
+
+/// Key Down Callback (Optional).
+/// Scancode: SDL Scancode integer.
+func on_key_down(scancode: i32)
+
+/// Key Up Callback (Optional).
+func on_key_up(scancode: i32)
