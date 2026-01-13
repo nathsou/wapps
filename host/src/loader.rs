@@ -3,7 +3,9 @@
 //! Handles parsing and validation of the WAPP binary format:
 //! - Bytes 0-3: Magic number "WAPP" (0x57, 0x41, 0x50, 0x50)
 //! - Byte 4: Format version (0x01)
-//! - Bytes 5+: WebAssembly module binary
+//! - Bytes 5..N: Application Name (UTF-8, null-terminated, max 256 bytes)
+//! - Bytes N+1..M: Application Description (UTF-8, null-terminated, max 1024 bytes)
+//! - Bytes M+1+: WebAssembly module binary
 
 use anyhow::{bail, Context, Result};
 use log::debug;
@@ -17,7 +19,31 @@ const WAPP_MAGIC: &[u8; 4] = b"WAPP";
 const WAPP_VERSION: u8 = 0x01;
 
 /// Minimum valid WAPP file size (header + minimal WASM)
-const WAPP_MIN_SIZE: usize = 5 + 8; // 5 byte header + minimal WASM header
+const WAPP_MIN_SIZE: usize = 5 + 1 + 1 + 8; // 5 byte header + 1 name null + 1 desc null + minimal WASM header
+
+/// Metadata parsed from the WAPP header
+#[derive(Debug, Clone, Default)]
+pub struct WappMetadata {
+    /// Application name (UTF-8, null-terminated in binary)
+    pub name: String,
+    /// Application description (UTF-8, null-terminated in binary)
+    pub description: String,
+}
+
+/// Helper to read a null-terminated UTF-8 string from a byte slice.
+///
+/// Returns (content, bytes_consumed)
+fn read_null_terminated(data: &[u8], max_len: usize) -> Result<(String, usize)> {
+    let limit = max_len.min(data.len());
+    if let Some(pos) = data[..limit].iter().position(|&b| b == 0) {
+        let s = std::str::from_utf8(&data[..pos])
+            .context("Invalid UTF-8 in string field")?
+            .to_string();
+        Ok((s, pos + 1))
+    } else {
+        bail!("String field missing null terminator or exceeds maximum length")
+    }
+}
 
 /// Load and validate a WAPP file, returning the WASM binary contents.
 ///
@@ -25,14 +51,15 @@ const WAPP_MIN_SIZE: usize = 5 + 8; // 5 byte header + minimal WASM header
 /// * `path` - Path to the .wapp file
 ///
 /// # Returns
-/// The raw WebAssembly module bytes (without the WAPP header)
+/// The raw WebAssembly module bytes (without the WAPP header) and metadata
 ///
 /// # Errors
 /// - File not found or cannot be read
 /// - Invalid magic number (not a WAPP file)
 /// - Unsupported format version
 /// - File too small to contain valid WASM
-pub fn load_wapp(path: &Path) -> Result<Vec<u8>> {
+/// - Invalid metadata (missing null terminators, invalid UTF-8)
+pub fn load_wapp(path: &Path) -> Result<(Vec<u8>, WappMetadata)> {
     // Read the entire file
     let data =
         fs::read(path).with_context(|| format!("Could not read file: {}", path.display()))?;
@@ -82,8 +109,25 @@ pub fn load_wapp(path: &Path) -> Result<Vec<u8>> {
 
     debug!("WAPP header valid: magic=WAPP, version={}", version);
 
-    // Extract and return WASM bytes (everything after the 5-byte header)
-    let wasm_bytes = data[5..].to_vec();
+    // Start parsing metadata
+    let mut offset = 5;
+
+    // Parse App Name
+    let (name, consumed) =
+        read_null_terminated(&data[offset..], 256).context("Failed to parse App Name")?;
+    offset += consumed;
+    debug!("Parsed App Name: {:?}", name);
+
+    // Parse App Description
+    let (description, consumed) =
+        read_null_terminated(&data[offset..], 1024).context("Failed to parse App Description")?;
+    offset += consumed;
+    debug!("Parsed App Description: {:?}", description);
+
+    let metadata = WappMetadata { name, description };
+
+    // Extract and return WASM bytes (everything after the header)
+    let wasm_bytes = data[offset..].to_vec();
 
     // Basic WASM validation: check for WASM magic number
     if wasm_bytes.len() >= 4 {
@@ -98,7 +142,7 @@ pub fn load_wapp(path: &Path) -> Result<Vec<u8>> {
         }
     }
 
-    Ok(wasm_bytes)
+    Ok((wasm_bytes, metadata))
 }
 
 #[cfg(test)]
