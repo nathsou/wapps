@@ -32,19 +32,19 @@ Adhere to KISS (Keep It Simple, Stupid) and YAGNI (You Aren't Gonna Need It). Mi
 ## Technical Implementation
 
 ### Stack & Standards
-- **Language**: Rust (implied by workspace context). Idiomatic Rust is required.
-- **Formatting**: `cargo fmt` MUST be used.
-- **Linting**: `cargo clippy` MUST pass without warnings.
+- **Language**: Use the most appropriate language for the task ensuring idiomatic usage.
+- **Formatting**: Standard formatting tools for the language MUST be used.
+- **Linting**: Strict linting MUST pass without warnings.
 
 ## Development Workflow
 
 ### Review & Quality
 - All changes MUST be reviewed via Pull Request.
-- CI/CD pipelines MUST pass (fmt, clippy) before merge (NO tests).
+- CI/CD pipelines MUST pass (formatting, linting) before merge (NO tests).
 - Commits SHOULD be atomic and semantic (Conventional Commits).
 
 ## Governance
 
 This constitution governs the development of the wapps project. Amendments require a Pull Request with updated versioning and rationale. All contributors must adhere to these principles.
 
-**Version**: 2.0.0 | **Ratified**: 2026-01-13 | **Last Amended**: 2026-01-13
+**Version**: 2.1.0 | **Ratified**: 2026-01-13 | **Last Amended**: 2026-01-15

@@ -29,7 +29,6 @@ tests/
 - 003-json-header-format: Added Rust (Stable)
 - 002-wapp-header-metadata: Added Rust (Edition 2021, implied stable toolchain)
 
-- 001-wasm-pixel-canvas: Added
 
 <!-- MANUAL ADDITIONS START -->
 <!-- MANUAL ADDITIONS END -->
