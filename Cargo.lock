@@ -1958,6 +1958,8 @@ dependencies = [
  "env_logger",
  "log",
  "sdl2",
+ "serde",
+ "serde_json",
  "wasmtime",
  "wasmtime-wasi",
 ]

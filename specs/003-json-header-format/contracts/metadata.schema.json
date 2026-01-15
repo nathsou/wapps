@@ -1,0 +1,17 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "WAPP Metadata",
+  "description": "Metadata header for WAPP v1 files",
+  "type": "object",
+  "properties": {
+    "name": {
+      "description": "The name of the application, used for window titles.",
+      "type": "string"
+    },
+    "description": {
+      "description": "A short description of the application.",
+      "type": "string"
+    }
+  },
+  "additionalProperties": true
+}
