@@ -29,7 +29,7 @@ function main() {
     try {
         execSync('cargo build --target wasm32-wasip1 --release', { cwd: scriptDir, stdio: 'inherit' });
     } catch (e) {
-        console.error(`Build failed: ${e.message}`);
+        console.error('Build failed.');
         process.exit(1);
     }
 
@@ -84,6 +84,7 @@ function main() {
         console.log(`  Output: ${outputPath}`);
         console.log('');
         console.log(`Run with: cargo run --release -p wapps-host -- ${outputName}`);
+        
     } catch (e) {
         console.error('Packaging failed:', e.message);
         process.exit(1);

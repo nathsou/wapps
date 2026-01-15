@@ -1,6 +1,6 @@
 [workspace]
 members = ["host"]
-exclude = ["examples/demo"]  # Built separately with wasm32-wasip1 target
+exclude = ["examples/game_of_life"]  # Built separately with wasm32-wasip1 target
 resolver = "2"
 
 [workspace.package]

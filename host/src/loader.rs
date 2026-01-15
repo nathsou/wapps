@@ -2,13 +2,14 @@
 //!
 //! Handles parsing and validation of the WAPP binary format:
 //! - Bytes 0-3: Magic number "WAPP" (0x57, 0x41, 0x50, 0x50)
-//! - Byte 4: Format version (0x01)
-//! - Bytes 5..N: Application Name (UTF-8, null-terminated, max 256 bytes)
-//! - Bytes N+1..M: Application Description (UTF-8, null-terminated, max 1024 bytes)
-//! - Bytes M+1+: WebAssembly module binary
+//! - Bytes 4-7: Format version (1, u32 LE)
+//! - Bytes 8-11: Header Length (N, u32 LE)
+//! - Bytes 12..12+N: JSON Metadata (UTF-8)
+//! - Bytes 12+N+: WebAssembly module binary
 
 use anyhow::{bail, Context, Result};
 use log::debug;
+use serde::Deserialize;
 use std::fs;
 use std::path::Path;
 
@@ -16,33 +17,20 @@ use std::path::Path;
 const WAPP_MAGIC: &[u8; 4] = b"WAPP";
 
 /// Current supported format version
-const WAPP_VERSION: u8 = 0x01;
+const WAPP_VERSION: u32 = 1;
 
-/// Minimum valid WAPP file size (header + minimal WASM)
-const WAPP_MIN_SIZE: usize = 5 + 1 + 1 + 8; // 5 byte header + 1 name null + 1 desc null + minimal WASM header
+/// Minimum valid WAPP file size (4 magic + 4 version + 4 length + 2 json {})
+const WAPP_MIN_SIZE: usize = 4 + 4 + 4 + 2;
 
 /// Metadata parsed from the WAPP header
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, Deserialize)]
 pub struct WappMetadata {
-    /// Application name (UTF-8, null-terminated in binary)
+    /// Application name
+    #[serde(default)]
     pub name: String,
-    /// Application description (UTF-8, null-terminated in binary)
+    /// Application description
+    #[serde(default)]
     pub description: String,
-}
-
-/// Helper to read a null-terminated UTF-8 string from a byte slice.
-///
-/// Returns (content, bytes_consumed)
-fn read_null_terminated(data: &[u8], max_len: usize) -> Result<(String, usize)> {
-    let limit = max_len.min(data.len());
-    if let Some(pos) = data[..limit].iter().position(|&b| b == 0) {
-        let s = std::str::from_utf8(&data[..pos])
-            .context("Invalid UTF-8 in string field")?
-            .to_string();
-        Ok((s, pos + 1))
-    } else {
-        bail!("String field missing null terminator or exceeds maximum length")
-    }
 }
 
 /// Load and validate a WAPP file, returning the WASM binary contents.
@@ -58,7 +46,7 @@ fn read_null_terminated(data: &[u8], max_len: usize) -> Result<(String, usize)> 
 /// - Invalid magic number (not a WAPP file)
 /// - Unsupported format version
 /// - File too small to contain valid WASM
-/// - Invalid metadata (missing null terminators, invalid UTF-8)
+/// - Invalid metadata (invalid JSON)
 pub fn load_wapp(path: &Path) -> Result<(Vec<u8>, WappMetadata)> {
     // Read the entire file
     let data =
@@ -95,8 +83,9 @@ pub fn load_wapp(path: &Path) -> Result<(Vec<u8>, WappMetadata)> {
         );
     }
 
-    // Validate version
-    let version = data[4];
+    // Validate version (Bytes 4-7, u32 LE)
+    let version_bytes: [u8; 4] = data[4..8].try_into().expect("slice with incorrect length");
+    let version = u32::from_le_bytes(version_bytes);
     if version != WAPP_VERSION {
         bail!(
             "Unsupported WAPP version: {}. \
@@ -107,27 +96,33 @@ pub fn load_wapp(path: &Path) -> Result<(Vec<u8>, WappMetadata)> {
         );
     }
 
-    debug!("WAPP header valid: magic=WAPP, version={}", version);
+    // Parse Header Length (Bytes 8-11, u32 LE)
+    let length_bytes: [u8; 4] = data[8..12].try_into().expect("slice with incorrect length");
+    let header_len = u32::from_le_bytes(length_bytes) as usize;
 
-    // Start parsing metadata
-    let mut offset = 5;
+    debug!("WAPP header: magic=WAPP, version={}, length={}", version, header_len);
 
-    // Parse App Name
-    let (name, consumed) =
-        read_null_terminated(&data[offset..], 256).context("Failed to parse App Name")?;
-    offset += consumed;
-    debug!("Parsed App Name: {:?}", name);
+    // Validate total size again with header length
+    // 4 magic + 4 version + 4 length + header_len
+    let header_end = 12 + header_len;
+    if data.len() < header_end {
+        bail!(
+            "Invalid WAPP file: incomplete header. \
+            Expected {} bytes for header metadata, but file ends at byte {}.",
+            header_len,
+            data.len()
+        );
+    }
 
-    // Parse App Description
-    let (description, consumed) =
-        read_null_terminated(&data[offset..], 1024).context("Failed to parse App Description")?;
-    offset += consumed;
-    debug!("Parsed App Description: {:?}", description);
-
-    let metadata = WappMetadata { name, description };
+    // Parse JSON Metadata
+    let json_bytes = &data[12..header_end];
+    let metadata: WappMetadata = serde_json::from_slice(json_bytes)
+        .context("Failed to parse WAPP header metadata (invalid JSON)")?;
+    
+    debug!("Parsed Metadata: name={:?}, description={:?}", metadata.name, metadata.description);
 
     // Extract and return WASM bytes (everything after the header)
-    let wasm_bytes = data[offset..].to_vec();
+    let wasm_bytes = data[header_end..].to_vec();
 
     // Basic WASM validation: check for WASM magic number
     if wasm_bytes.len() >= 4 {
