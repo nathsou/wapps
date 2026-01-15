@@ -296,8 +296,19 @@ impl WasmRuntime {
         Ok(())
     }
 
-    /// Get the latest frame data from the host interface
-    pub fn get_frame_data(&self) -> Option<(i32, i32, Vec<u8>)> {
-        self.host_interface.lock().ok()?.take_frame()
+    /// Process the latest frame data from the host interface
+    ///
+    /// Calls the provided closure with the frame data (width, height, pixels slice)
+    /// if a new frame is available. This avoids copying the pixel data.
+    pub fn with_frame_data<F, R>(&mut self, f: F) -> Option<R>
+    where
+        F: FnOnce(i32, i32, &[u8]) -> R,
+    {
+        let mut host = self.host_interface.lock().ok()?;
+        if let Some((w, h, pixels)) = host.borrow_frame() {
+            Some(f(w, h, pixels))
+        } else {
+            None
+        }
     }
 }

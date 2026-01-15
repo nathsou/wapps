@@ -149,8 +149,11 @@ fn run_app(wapp_path: &PathBuf) -> Result<()> {
         runtime.call_update(dt)?;
 
         // Get the latest frame from the host interface and update graphics
-        if let Some((width, height, pixels)) = runtime.get_frame_data() {
-            graphics.update_texture(width as u32, height as u32, &pixels)?;
+        // Uses zero-copy borrow pattern to avoid allocating a new Vec each frame
+        if let Some(result) = runtime.with_frame_data(|width, height, pixels| {
+            graphics.update_texture(width as u32, height as u32, pixels)
+        }) {
+            result?;
         }
 
         // Render
