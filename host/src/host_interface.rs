@@ -10,7 +10,7 @@ pub struct HostInterface {
     /// Latest frame height  
     frame_height: i32,
     /// Latest pixel data (RGBA format)
-    frame_pixels: Option<Vec<u8>>,
+    frame_buffer: Vec<u8>,
     /// Flag indicating new frame data is available
     frame_dirty: bool,
 }
@@ -21,7 +21,7 @@ impl HostInterface {
         Self {
             frame_width: 0,
             frame_height: 0,
-            frame_pixels: None,
+            frame_buffer: Vec::new(),
             frame_dirty: false,
         }
     }
@@ -30,19 +30,28 @@ impl HostInterface {
     pub fn set_frame(&mut self, width: i32, height: i32, pixels: &[u8]) {
         self.frame_width = width;
         self.frame_height = height;
-        self.frame_pixels = Some(pixels.to_vec());
+
+        // Resize buffer if needed, reusing allocation
+        if self.frame_buffer.len() != pixels.len() {
+            self.frame_buffer.resize(pixels.len(), 0);
+        }
+        self.frame_buffer.copy_from_slice(pixels);
+        
         self.frame_dirty = true;
     }
 
-    /// Take the latest frame data if available (consumes the dirty flag)
-    pub fn take_frame(&mut self) -> Option<(i32, i32, Vec<u8>)> {
+    /// Access the latest frame data if available (consumes the dirty flag).
+    /// Returns true if a frame was processed, false otherwise.
+    pub fn with_frame<F>(&mut self, f: F) -> bool
+    where
+        F: FnOnce(i32, i32, &[u8]),
+    {
         if self.frame_dirty {
             self.frame_dirty = false;
-            self.frame_pixels
-                .take()
-                .map(|pixels| (self.frame_width, self.frame_height, pixels))
+            f(self.frame_width, self.frame_height, &self.frame_buffer);
+            true
         } else {
-            None
+            false
         }
     }
 

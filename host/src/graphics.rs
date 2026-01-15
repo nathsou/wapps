@@ -76,8 +76,8 @@ impl Graphics {
     }
 
     /// Poll for SDL events
-    pub fn poll_events(&mut self) -> Vec<Event> {
-        self.event_pump.poll_iter().collect()
+    pub fn poll_events(&mut self) -> impl Iterator<Item = Event> + '_ {
+        self.event_pump.poll_iter()
     }
 
     /// Update the texture with new pixel data

@@ -296,8 +296,15 @@ impl WasmRuntime {
         Ok(())
     }
 
-    /// Get the latest frame data from the host interface
-    pub fn get_frame_data(&self) -> Option<(i32, i32, Vec<u8>)> {
-        self.host_interface.lock().ok()?.take_frame()
+    /// Access the latest frame data from the host interface
+    pub fn with_frame_data<F>(&self, f: F) -> bool
+    where
+        F: FnOnce(i32, i32, &[u8]),
+    {
+        if let Ok(mut host) = self.host_interface.lock() {
+            host.with_frame(f)
+        } else {
+            false
+        }
     }
 }
