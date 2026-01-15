@@ -44,3 +44,7 @@ logs/
 coverage/
 *.profraw
 *.profdata
+
+# JavaScript
+node_modules/
+

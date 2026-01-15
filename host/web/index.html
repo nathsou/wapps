@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WAPP Host</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="overlay">
+        <h1>WAPP Host</h1>
+        <p>Drag & drop a .wapp file here or click to select</p>
+        <input type="file" id="file-picker" accept=".wapp,.wasm">
+        <p id="error-message" class="error hidden"></p>
+    </div>
+    <canvas id="wapp-canvas" width="640" height="480"></canvas>
+    <script type="module" src="main.js"></script>
+</body>
+</html>
